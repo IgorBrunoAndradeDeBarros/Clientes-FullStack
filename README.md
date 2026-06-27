@@ -11,81 +11,113 @@ O objetivo do sistema é fornecer uma interface intuitiva para cadastrar cliente
 - **Gestão de Clientes:** Cadastro, listagem, edição e exclusão de clientes (CRUD completo).
 - **Registro de Serviços:** Lançamento de serviços prestados, vinculando ao cliente, com descrição, valor e data.
 - **Filtros e Buscas:** Consulta de serviços prestados filtrando por nome do cliente e mês de realização.
+- **Autenticação:** Cadastro e login de usuários com JWT.
 - **Validações:** O sistema conta com validações robustas tanto no Front-End quanto no Back-End (ex: CPF válido, campos obrigatórios).
 
 ---
 
 ##  Tecnologias Utilizadas
 
-Este projeto foi construído separando as responsabilidades entre uma API RESTful e uma Single Page Application (SPA).
-
 ###  Front-End (SPA)
 - **Angular:** 9.1.1
 - **Node.js:** 16.20.2
-- **NPM:** Gerenciador de pacotes
 - **HTML5 / CSS3 / TypeScript**
-- **Bootstrap** (para estilização e design responsivo)
+- **Bootstrap**
 
 ### ️ Back-End (API REST)
 - **Java:** JDK 21
 - **Spring Boot:** 3.3.3
-- **Spring Data JPA:** Para persistência de dados
-- **Banco de Dados:** H2 Database (em memória, ideal para desenvolvimento)
-- **SpringDoc OpenAPI (Swagger):** Para documentação da API
-- **Lombok:** Produtividade e código limpo
-- **Maven:** Gerenciador de dependências
+- **Spring Data JPA**
+- **Banco de Dados:** H2 Database (em memória)
+- **SpringDoc OpenAPI (Swagger)**
+- **Lombok**
+- **Maven**
+
+###  Infraestrutura
+- **Docker & Docker Compose**
+- **Nginx** (reverse proxy + servir o front-end)
 
 ---
 
-##  Pré-requisitos
+##  Como Executar com Docker (Recomendado)
 
-Para rodar este projeto na sua máquina, você precisará ter instalado:
+### Pré-requisitos
+- [Docker](https://www.docker.com/) instalado
+- [Docker Compose](https://docs.docker.com/compose/) instalado
+
+### Passo a Passo
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/IgorBrunoAndradeDeBarros/Clientes-FullStack.git
+cd Clientes-FullStack
+```
+
+2. Suba os containers:
+```bash
+docker compose up --build -d
+```
+
+3. Acesse a aplicação no navegador:
+```
+http://localhost
+```
+
+> A API estará disponível em `http://localhost/api` e a documentação Swagger em `http://localhost:8080/swagger-ui/index.html` (acesso direto ao backend).
+
+### Parar os containers
+```bash
+docker compose down
+```
+
+### Ver logs
+```bash
+docker compose logs -f
+```
+
+---
+
+##  Como Executar Manualmente (sem Docker)
+
+### Pré-requisitos
 
 1. **Java JDK 21**
 2. **Maven 3.8+**
 3. **Node.js 16.20.2**
-4. **Angular CLI 9.1.1** (Instale globalmente usando: `npm install -g @angular/cli@9.1.1`)
-
----
-
-##  Como Executar o Projeto
-
-O projeto é dividido em duas pastas principais: o back-end (API) e o front-end (App). Primeiro, você deve clonar o repositório e, em seguida, usar **dois terminais** abertos para rodar ambos simultaneamente.
+4. **Angular CLI 9.1.1**
+```bash
+npm install -g @angular/cli@9.1.1
+```
 
 ### Passo 1: Clonar o Repositório
 
-Abra o seu terminal e execute:
-> git clone https://github.com/IgorBrunoAndradeDeBarros/Clientes-FullStack.git
+```bash
+git clone https://github.com/IgorBrunoAndradeDeBarros/Clientes-FullStack.git
+cd Clientes-FullStack
+```
 
-Após o clone, entre na pasta principal do projeto:
-> cd Clientes-FullStack
+### Passo 2: Rodando o Back-End
 
-### Passo 2: Rodando o Back-End (API)
+```bash
+cd clientes
+mvn clean install
+mvn spring-boot:run
+```
 
-1. No terminal, acesse a pasta do back-end:
-> cd clientes
+A API estará em: **http://localhost:8080**  
+Swagger: **http://localhost:8080/swagger-ui/index.html**
 
-2. Instale as dependências e compile o projeto:
-> mvn clean install
+### Passo 3: Rodando o Front-End
 
-3. Inicie o servidor Spring Boot:
-> mvn spring-boot:run
+Em um novo terminal:
 
-A API estará rodando em: **http://localhost:8080**
-Você pode acessar a documentação do Swagger em: **http://localhost:8080/swagger-ui/index.html**
+```bash
+cd clientes-app
+npm install
+npm run start
+```
 
-### Passo 3: Rodando o Front-End (Interface)
-
-1. Abra um **novo** terminal (mantenha o do back-end rodando) e acesse a pasta do front-end a partir da raiz do repositório:
-> cd clientes-app
-
-2. Instale as dependências do Node:
-> npm install
-
-3. Inicie o servidor de desenvolvimento do Angular:
-> npm run start
-
-A aplicação Front-End estará disponível no seu navegador em: **http://localhost:4200**
+A aplicação estará em: **http://localhost:4200**
 
 ---
 
@@ -93,12 +125,17 @@ A aplicação Front-End estará disponível no seu navegador em: **http://localh
 
 ```text
 /Clientes-FullStack
-├── clientes/                 # Código fonte do Back-End (Spring Boot / Java)
-│   ├── src/main/java/        # Controladores, Entidades, Repositórios, Configurações
-│   ├── src/main/resources/   # Configurações do banco (application.properties)
-│   └── pom.xml               # Dependências do Maven
+├── clientes/                 # Back-End (Spring Boot / Java)
+│   ├── src/main/java/        # Controllers, Entidades, Repositórios, Configurações
+│   ├── src/main/resources/   # application.properties
+│   └── pom.xml
 │
-└── clientes-app/             # Código fonte do Front-End (Angular / TypeScript)
-    ├── src/app/              # Componentes, Serviços, Módulos
-    ├── package.json          # Dependências do NPM
-    └── angular.json          # Configurações do Angular Workspace
+├── clientes-app/             # Front-End (Angular / TypeScript)
+│   ├── src/app/              # Componentes, Serviços, Módulos
+│   ├── nginx.conf            # Configuração do Nginx (proxy reverso)
+│   ├── Dockerfile
+│   ├── package.json
+│   └── angular.json
+│
+└── docker-compose.yml        # Orquestração dos containers
+```
