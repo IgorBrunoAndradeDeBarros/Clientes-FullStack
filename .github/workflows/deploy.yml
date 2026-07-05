@@ -1,11 +1,59 @@
-name: Deploy to EC2
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [main]
 
 jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('clientes/pom.xml') }}
+          restore-keys: maven-
+
+      - name: Download dependencies
+        working-directory: ./clientes
+        run: mvn dependency:go-offline -B
+
+  test:
+    needs: dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('clientes/pom.xml') }}
+          restore-keys: maven-
+
+      - name: Run backend tests
+        working-directory: ./clientes
+        run: mvn clean test -B
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
