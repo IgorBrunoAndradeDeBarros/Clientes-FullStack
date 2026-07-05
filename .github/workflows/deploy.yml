@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  dependencies:
+  backend-dependencies:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -28,8 +28,8 @@ jobs:
         working-directory: ./clientes
         run: mvn dependency:go-offline -B
 
-  test:
-    needs: dependencies
+  backend-test:
+    needs: backend-dependencies
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -52,8 +52,47 @@ jobs:
         working-directory: ./clientes
         run: mvn clean test -B
 
+  frontend-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: clientes-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./clientes-app
+        run: npm ci
+
+  frontend-test:
+    needs: frontend-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: clientes-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./clientes-app
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: ./clientes-app
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
   deploy:
-    needs: test
+    needs: [ backend-test, frontend-test ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -73,4 +112,5 @@ jobs:
             git pull origin main
             export JWT_SECRET="${{ secrets.JWT_SECRET }}"
             docker compose down
+            docker system prune -a -f --volumes
             docker compose up -d --build
